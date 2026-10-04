@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Application Processing Dashboard</title>
+
+<style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f7fb;
+        margin: 0;
+        padding: 30px;
+        color: #222;
+    }
+
+    .container {
+        max-width: 1300px;
+        margin: auto;
+    }
+
+    h1 {
+        color: #1f3c88;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        color: #666;
+        margin-bottom: 25px;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    }
+
+    .card h3 {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .card p {
+        font-size: 28px;
+        font-weight: bold;
+        margin: 10px 0 0;
+        color: #1f3c88;
+    }
+
+    .controls {
+        background: white;
+        padding: 18px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    input, select {
+        padding: 11px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    input {
+        flex: 1;
+        min-width: 220px;
+    }
+
+    button {
+        padding: 9px 14px;
+        background: #1f3c88;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background: #162d69;
+    }
+
+    .table-container {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1150px;
+    }
+
+    th, td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background: #1f3c88;
+        color: white;
+    }
+
+    tr:hover {
+        background: #f7f9fc;
+    }
+
+    .processed {
+        color: #15803d;
+        font-weight: bold;
+    }
+
+    .correction {
+        color: #d97706;
+        font-weight: bold;
+    }
+
+    .document-valid {
+        color: #15803d;
+        font-weight: bold;
+    }
+
+    .document-missing {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    .priority-high {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    .priority-medium {
+        color: #d97706;
+        font-weight: bold;
+    }
+
+    .priority-normal {
+        color: #15803d;
+        font-weight: bold;
+    }
+
+    .empty {
+        text-align: center;
+        padding: 30px;
+        color: #777;
+    }
+
+    .status-button {
+        background: #15803d;
+        padding: 5px 11px;
+        margin-bottom: 10px;
+        font-size: 10px;
+    }
+
+    .status-button:hover {
+        background: #11632f;
+    }
+
+    /* Remove button */
+
+    .delete-button {
+        background: #dc2626;
+        padding: 5px 8px;
+        font-size: 11px;
+        margin-left: 6px;
+    }
+
+    .delete-button:hover {
+        background: #b91c1c;
+    }
+
+    @media (max-width: 800px) {
+
+        .stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        body {
+            padding: 15px;
+        }
+    }
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Application Processing Dashboard</h1>
+
+    <div class="subtitle">
+        Monitor submitted applications, validation status and document processing.
+    </div>
+
+    <div class="stats">
+
+        <div class="card">
+            <h3>Total Applications</h3>
+            <p id="totalCount">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Processed</h3>
+            <p id="processedCount">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Correction Required</h3>
+            <p id="correctionCount">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Documents Processed</h3>
+            <p id="documentCount">0</p>
+        </div>
+
+    </div>
+
+    <div class="controls">
+
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Search by name or email..."
+            onkeyup="filterApplications()"
+        >
+
+        <select id="categoryFilter" onchange="filterApplications()">
+
+            <option value="ALL">All Categories</option>
+            <option value="Education">Education</option>
+            <option value="Employment">Employment</option>
+            <option value="Government">Government</option>
+            <option value="General">General</option>
+
+        </select>
+
+        <button onclick="loadApplications()">
+            🔄 Refresh
+        </button>
+
+    </div>
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Missing Fields</th>
+                    <th>Document</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="applicationTable"></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+let allApplications = [];
+
+
+/* Load applications */
+
+async function loadApplications() {
+
+    try {
+
+        const response = await fetch("/api/applications");
+
+        allApplications = await response.json();
+
+        updateStatistics();
+
+        displayApplications(allApplications);
+
+    } catch (error) {
+
+        console.error("Error loading applications:", error);
+
+        alert("Unable to load applications.");
+
+    }
+}
+
+
+/* Update statistics */
+
+function updateStatistics() {
+
+    const total = allApplications.length;
+
+    const processed = allApplications.filter(
+        app => app.status === "PROCESSED"
+    ).length;
+
+    const correction = allApplications.filter(
+        app => app.status === "CORRECTION_REQUIRED"
+    ).length;
+
+    const documents = allApplications.filter(
+        app => app.documentStatus === "PROCESSED"
+            || app.documentStatus === "VALIDATED"
+    ).length;
+
+
+    document.getElementById("totalCount").textContent = total;
+
+    document.getElementById("processedCount").textContent = processed;
+
+    document.getElementById("correctionCount").textContent = correction;
+
+    document.getElementById("documentCount").textContent = documents;
+}
+
+
+/* Display applications */
+
+function displayApplications(applications) {
+
+    const table = document.getElementById("applicationTable");
+
+    table.innerHTML = "";
+
+
+    if (applications.length === 0) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="9" class="empty">
+                    No applications found.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    applications.forEach(app => {
+
+        const row = document.createElement("tr");
+
+
+        const statusClass =
+            app.status === "PROCESSED"
+                ? "processed"
+                : "correction";
+
+
+        const documentClass =
+            app.documentStatus === "PROCESSED"
+                || app.documentStatus === "VALIDATED"
+                ? "document-valid"
+                : "document-missing";
+
+
+        const priorityClass =
+            app.priority === "HIGH"
+                ? "priority-high"
+                : app.priority === "MEDIUM"
+                    ? "priority-medium"
+                    : "priority-normal";
+
+
+        let actionButton = "";
+
+
+        if (app.status === "CORRECTION_REQUIRED") {
+
+            actionButton = `
+                <button
+                    class="status-button"
+                    onclick="markProcessed(${app.id})">
+                    Mark Processed
+                </button>
+            `;
+
+        } else {
+
+            actionButton = `
+                <span class="processed">
+                    ✓ Completed
+                </span>
+            `;
+        }
+
+
+        row.innerHTML = `
+
+            <td>${app.id}</td>
+
+            <td>${app.name || "-"}</td>
+
+            <td>${app.email || "-"}</td>
+
+            <td>${app.category || "-"}</td>
+
+            <td class="${priorityClass}">
+                ${app.priority || "NORMAL"}
+            </td>
+
+            <td class="${statusClass}">
+                ${app.status || "-"}
+            </td>
+
+            <td>
+                ${app.missingFields || "None"}
+            </td>
+
+            <td class="${documentClass}">
+                ${app.documentName || "No document"}
+            </td>
+
+            <td>
+
+                ${actionButton}
+
+                <button
+                    class="delete-button"
+                    onclick="deleteApplication(${app.id})">
+                    Remove
+                </button>
+
+            </td>
+
+        `;
+
+        table.appendChild(row);
+
+    });
+}
+
+
+/* Mark application as processed */
+
+async function markProcessed(id) {
+
+    try {
+
+        const response = await fetch(
+            `/api/applications/${id}/status?status=PROCESSED`,
+            {
+                method: "PUT"
+            }
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error("Failed to update status");
+
+        }
+
+
+        alert("Application marked as processed successfully!");
+
+        loadApplications();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Unable to update application status.");
+
+    }
+
+}
+
+
+/* Delete / Remove one application */
+
+async function deleteApplication(id) {
+
+    const confirmed = confirm(
+        "Are you sure you want to remove this application?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        const response = await fetch(
+            `/api/applications/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error("Failed to delete application");
+
+        }
+
+
+        alert("Application removed successfully!");
+
+        loadApplications();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Unable to remove application.");
+
+    }
+
+}
+
+
+/* Search and category filtering */
+
+function filterApplications() {
+
+    const search =
+        document.getElementById("searchInput")
+        .value
+        .toLowerCase();
+
+
+    const category =
+        document.getElementById("categoryFilter")
+        .value;
+
+
+    const filtered = allApplications.filter(app => {
+
+        const matchesSearch =
+            (app.name || "").toLowerCase().includes(search) ||
+            (app.email || "").toLowerCase().includes(search);
+
+
+        const matchesCategory =
+            category === "ALL" ||
+            app.category === category;
+
+
+        return matchesSearch && matchesCategory;
+
+    });
+
+
+    displayApplications(filtered);
+
+}
+
+
+/* Load data when page opens */
+
+loadApplications();
+
+</script>
+
+</body>
+</html>

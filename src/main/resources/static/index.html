@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Application Processing</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1f3c88;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 22px;
+            padding: 12px;
+            background: #1f3c88;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #162d68;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Smart Application Processing</h1>
+
+    <form id="applicationForm">
+
+        <label>Name</label>
+        <input
+            type="text"
+            id="name"
+            placeholder="Enter your name"
+        >
+
+        <label>Email</label>
+        <input
+            type="email"
+            id="email"
+            placeholder="Enter your email"
+        >
+
+        <label>Phone</label>
+        <input
+            type="text"
+            id="phone"
+            placeholder="Enter phone number"
+        >
+
+        <label>Category</label>
+
+        <select id="category">
+
+            <option value="">Select category</option>
+
+            <option value="Education">
+                Education
+            </option>
+
+            <option value="Employment">
+                Employment
+            </option>
+
+            <option value="Government">
+                Government
+            </option>
+
+            <option value="General">
+                General
+            </option>
+
+        </select>
+
+        <label>Description</label>
+
+        <textarea
+            id="description"
+            placeholder="Enter application details">
+        </textarea>
+
+
+        <label>Upload Document</label>
+
+        <input
+            type="file"
+            id="document"
+            name="document"
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+        >
+
+        <button type="submit">
+            Submit Application
+        </button>
+
+    </form>
+
+
+    <div id="result"></div>
+
+</div>
+
+
+<script>
+
+document
+    .getElementById("applicationForm")
+    .addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        const result = document.getElementById("result");
+
+        const formData = new FormData();
+
+
+        formData.append(
+            "name",
+            document.getElementById("name").value
+        );
+
+        formData.append(
+            "email",
+            document.getElementById("email").value
+        );
+
+        formData.append(
+            "phone",
+            document.getElementById("phone").value
+        );
+
+        formData.append(
+            "category",
+            document.getElementById("category").value
+        );
+
+        formData.append(
+            "description",
+            document.getElementById("description").value
+        );
+
+
+        const documentFile =
+            document.getElementById("document").files[0];
+
+
+        if (documentFile) {
+
+            formData.append(
+                "document",
+                documentFile
+            );
+
+        }
+
+
+        try {
+
+            const response = await fetch(
+                "/api/applications",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+
+            const data = await response.json();
+
+            result.style.display = "block";
+
+
+            if (data.status === "PROCESSED") {
+
+                result.innerHTML =
+                    "✅ Application processed successfully!<br>" +
+                    "Document: " +
+                    data.documentName +
+                    '<br><br>' +
+                    '<a href="/dashboard.html">' +
+                    'View Dashboard' +
+                    '</a>';
+
+            } else {
+
+                result.innerHTML =
+                    "⚠️ Correction required.<br>" +
+                    "Missing: " +
+                    (data.missingFields || "Please check your information.");
+
+            }
+
+
+        } catch (error) {
+
+            result.style.display = "block";
+
+            result.innerHTML =
+                "❌ Unable to submit application.";
+
+            console.error(error);
+
+        }
+
+    });
+
+</script>
+
+</body>
+</html>
